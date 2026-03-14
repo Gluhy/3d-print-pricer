@@ -1,0 +1,45 @@
+{
+  "currency": "€",
+  "locale": "en-US",
+  "tax_rate": 0.21,
+  "min_net": 15,
+  "dual_risk_bonus": 0.05,
+  "machine_rate": 25,
+  "design_rate": 120,
+  "default_post_processing": 15,
+
+  "discounts": [
+    { "min": 50, "pct": 0.10, "label": "10%" },
+    { "min": 20, "pct": 0.07, "label": "7%" },
+    { "min": 10, "pct": 0.05, "label": "5%" }
+  ],
+
+  "scanning_options": [
+    { "label": "None", "price": 0 },
+    { "label": "3D scan — basic", "price": 150 },
+    { "label": "Scan + modeling", "price": 400 }
+  ],
+
+  "materials": {
+    "standard": [
+      { "key": "pla",  "name": "PLA",  "price": 25, "margin": 2.0, "risk": 0.05 },
+      { "key": "petg", "name": "PETG", "price": 28, "margin": 2.0, "risk": 0.08 },
+      { "key": "abs",  "name": "ABS",  "price": 28, "margin": 2.0, "risk": 0.10 },
+      { "key": "asa",  "name": "ASA",  "price": 30, "margin": 2.0, "risk": 0.10 }
+    ],
+    "reinforced": [
+      { "key": "abs_cf",  "name": "ABS-CF",  "price": 55,  "margin": 2.5, "risk": 0.12 },
+      { "key": "pa6_cf",  "name": "PA6-CF",  "price": 70,  "margin": 2.5, "risk": 0.15 },
+      { "key": "pa_cf_p", "name": "PA-CF+",  "price": 85,  "margin": 2.5, "risk": 0.15 },
+      { "key": "ppa_cf",  "name": "PPA-CF",  "price": 100, "margin": 2.5, "risk": 0.15 }
+    ],
+    "flexible": [
+      { "key": "tpu",   "name": "TPU 95A", "price": 45, "margin": 2.0, "risk": 0.08 },
+      { "key": "tpu_p", "name": "TPU+",    "price": 55, "margin": 2.0, "risk": 0.10 }
+    ],
+    "support": [
+      { "key": "hips", "name": "HIPS (support)", "price": 22, "margin": 1.5, "risk": 0.05 },
+      { "key": "pva",  "name": "PVA (soluble)",  "price": 60, "margin": 1.5, "risk": 0.08 }
+    ]
+  }
+}
