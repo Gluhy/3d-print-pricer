@@ -1,237 +1,312 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>3D Print Pricer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#0a0e17;--card:#111827;--border:rgba(255,255,255,0.06);--border-focus:#3b82f6;--text:#e2e8f0;--muted:#64748b;--accent:#3b82f6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--input-bg:#0c1221;--purple:#a78bfa}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
-    .app{width:100%;max-width:960px}
-    .header{display:flex;align-items:baseline;gap:12px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
-    .header h1{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--accent)}
-    .header .sub{font-size:13px;color:var(--muted)}
-    .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);border-radius:8px;padding:4px;border:1px solid var(--border)}
-    .tab{flex:1;padding:10px 16px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);background:transparent;border:none;cursor:pointer;transition:all .15s;text-align:center}
-    .tab:hover{color:var(--text)}.tab.active{background:var(--accent);color:#fff}
-    .tab-content{display:none}.tab-content.active{display:block}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.full{grid-column:1/-1}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
-    .card-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;margin-top:14px}
-    label:first-of-type{margin-top:0}
-    input[type="number"],input[type="text"],select,textarea{width:100%;padding:9px 12px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;outline:none;transition:border-color .15s}
-    textarea{font-size:12px;resize:vertical;min-height:50px}
-    input:focus,select:focus,textarea:focus{border-color:var(--border-focus)}
-    select{cursor:pointer}select option{background:var(--card)}
-    .check-row{display:flex;align-items:center;gap:8px;margin-top:14px}
-    .check-row input[type="checkbox"]{accent-color:var(--accent);width:16px;height:16px}
-    .check-row label{margin:0;font-size:13px;color:var(--text);cursor:pointer}
-    .res-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
-    .res-row:last-child{border-bottom:none}
-    .res-label{color:var(--muted)}.res-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px}
-    .total-box{background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(59,130,246,0.02));border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:20px;text-align:center}
-    .total-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:4px;font-family:'JetBrains Mono',monospace}
-    .total-price{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:800;color:var(--accent);line-height:1.1}
-    .total-sub{font-size:12px;color:var(--muted);margin-top:6px}
-    .per-piece{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--green);margin-top:10px}
-    .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px}
-    .badge-risk{background:rgba(239,68,68,0.12);color:var(--red)}
-    .badge-discount{background:rgba(16,185,129,0.12);color:var(--green)}
-    .badge-cheapest{background:rgba(16,185,129,0.15);color:var(--green)}
-    .badge-selected{background:rgba(59,130,246,0.12);color:var(--accent)}
-    .badge-dual{background:rgba(167,139,250,0.15);color:var(--purple)}
-    .discount-info{margin-top:12px;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:6px;font-size:12px;color:var(--green);display:none}
-    .min-note{margin-top:8px;font-size:11px;color:var(--amber);font-weight:600;display:none}
-    .hint{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
-    .summary-grid{display:grid;grid-template-columns:1.3fr 0.7fr;gap:20px;align-items:start}
-    .mat2-section{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(167,139,250,0.25);display:none}
-    .mat2-section.active{display:block}
-    .mat2-label{color:var(--purple);font-weight:600;font-size:12px}
-    .cmp-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
-    .cmp-table th{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:2px solid rgba(255,255,255,0.08)}
-    .cmp-table th:first-child{text-align:left}
-    .cmp-table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px}
-    .cmp-table td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:500}
-    .cmp-table tr.cmp-cheapest td{background:rgba(16,185,129,0.04)}
-    .cmp-table tr.cmp-selected td{border-left:3px solid var(--accent)}
-    .cmp-bar{display:inline-block;height:6px;border-radius:3px;background:var(--accent);opacity:0.4;vertical-align:middle;margin-right:8px;min-width:3px;transition:width .3s}
-    .cmp-bar.cheapest{background:var(--green);opacity:0.7}
-    .history-item{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;transition:border-color .15s}
-    .history-item:hover{border-color:rgba(255,255,255,0.12)}
-    .history-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-    .history-title{font-weight:600;font-size:14px}
-    .history-date{font-size:11px;color:var(--muted);white-space:nowrap}
-    .history-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px}
-    .history-prices{display:flex;gap:20px;align-items:baseline;margin-top:6px;flex-wrap:wrap}
-    .history-price{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent)}
-    .history-price-sm{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:600}
-    .history-price-muted{font-size:11px;color:var(--muted)}
-    .history-note{font-size:12px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-style:italic}
-    .history-actions{display:flex;gap:6px;margin-top:10px}
-    .btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:0.5px}
-    .btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:#2563eb}
-    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
-    .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.2)}.btn-danger:hover{background:rgba(239,68,68,0.1)}
-    .empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
-    .empty-state span{font-size:32px;display:block;margin-bottom:10px}
-    .save-bar{display:flex;gap:10px;align-items:end;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
-    .save-bar .field{flex:1}.save-bar label{margin-top:0}
-    .config-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;margin-left:8px}
-    .config-ok{background:rgba(16,185,129,0.12);color:var(--green)}
-    .config-fallback{background:rgba(245,158,11,0.12);color:var(--amber)}
-    @media(max-width:700px){.grid{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr !important}.save-bar{flex-direction:column;align-items:stretch}.save-bar .btn{width:100%}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>3D Print Pricer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e17;--card:#111827;--border:rgba(255,255,255,0.06);--border-focus:#3b82f6;--text:#e2e8f0;--muted:#64748b;--accent:#3b82f6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--input-bg:#0c1221;--purple:#a78bfa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
+.app{width:100%;max-width:960px}
+.header{display:flex;align-items:baseline;gap:12px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.header h1{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--accent)}
+.header .sub{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);border-radius:8px;padding:4px;border:1px solid var(--border)}
+.tab{flex:1;padding:10px 16px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);background:transparent;border:none;cursor:pointer;transition:all .15s;text-align:center}
+.tab:hover{color:var(--text)}.tab.active{background:var(--accent);color:#fff}
+.tab-content{display:none}.tab-content.active{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.full{grid-column:1/-1}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;margin-top:14px}
+label:first-of-type{margin-top:0}
+input[type="number"],input[type="text"],select,textarea{width:100%;padding:9px 12px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;outline:none;transition:border-color .15s}
+textarea{font-size:12px;resize:vertical;min-height:50px}
+input:focus,select:focus,textarea:focus{border-color:var(--border-focus)}
+select{cursor:pointer}select option{background:var(--card)}
+.check-row{display:flex;align-items:center;gap:8px;margin-top:14px}
+.check-row input[type="checkbox"]{accent-color:var(--accent);width:16px;height:16px}
+.check-row label{margin:0;font-size:13px;color:var(--text);cursor:pointer}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.res-row:last-child{border-bottom:none}
+.res-label{color:var(--muted)}.res-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px}
+.total-box{background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(59,130,246,0.02));border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:20px;text-align:center}
+.total-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:4px;font-family:'JetBrains Mono',monospace}
+.total-price{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:800;color:var(--accent);line-height:1.1}
+.total-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.per-piece{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--green);margin-top:10px}
+.badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px}
+.badge-risk{background:rgba(239,68,68,0.12);color:var(--red)}
+.badge-discount{background:rgba(16,185,129,0.12);color:var(--green)}
+.badge-cheapest{background:rgba(16,185,129,0.15);color:var(--green)}
+.badge-selected{background:rgba(59,130,246,0.12);color:var(--accent)}
+.badge-dual{background:rgba(167,139,250,0.15);color:var(--purple)}
+.discount-info{margin-top:12px;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:6px;font-size:12px;color:var(--green);display:none}
+.min-note{margin-top:8px;font-size:11px;color:var(--amber);font-weight:600;display:none}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
+.summary-grid{display:grid;grid-template-columns:1.3fr 0.7fr;gap:20px;align-items:start}
+.mat2-section{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(167,139,250,0.25);display:none}
+.mat2-section.active{display:block}
+.mat2-label{color:var(--purple);font-weight:600;font-size:12px}
+.cmp-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.cmp-table th{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:2px solid rgba(255,255,255,0.08)}
+.cmp-table th:first-child{text-align:left}
+.cmp-table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px}
+.cmp-table td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:500}
+.cmp-table tr.cmp-cheapest td{background:rgba(16,185,129,0.04)}
+.cmp-table tr.cmp-selected td{border-left:3px solid var(--accent)}
+.cmp-bar{display:inline-block;height:6px;border-radius:3px;background:var(--accent);opacity:0.4;vertical-align:middle;margin-right:8px;min-width:3px;transition:width .3s}
+.cmp-bar.cheapest{background:var(--green);opacity:0.7}
+.history-item{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;transition:border-color .15s}
+.history-item:hover{border-color:rgba(255,255,255,0.12)}
+.history-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.history-title{font-weight:600;font-size:14px}
+.history-date{font-size:11px;color:var(--muted);white-space:nowrap}
+.history-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px}
+.history-prices{display:flex;gap:20px;align-items:baseline;margin-top:6px;flex-wrap:wrap}
+.history-price{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent)}
+.history-price-sm{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);font-weight:600}
+.history-price-muted{font-size:11px;color:var(--muted)}
+.history-note{font-size:12px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-style:italic}
+.history-actions{display:flex;gap:6px;margin-top:10px}
+.btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:0.5px}
+.btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:#2563eb}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.2)}.btn-danger:hover{background:rgba(239,68,68,0.1)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px}
+.empty-state span{font-size:32px;display:block;margin-bottom:10px}
+.save-bar{display:flex;gap:10px;align-items:end;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.save-bar .field{flex:1}.save-bar label{margin-top:0}
+.config-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;margin-left:8px}
+.config-ok{background:rgba(16,185,129,0.12);color:var(--green)}
+.config-fallback{background:rgba(245,158,11,0.12);color:var(--amber)}
+
+/* ===== SETTINGS TAB ===== */
+.s-section{margin-bottom:20px}
+.s-group-hdr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;margin-bottom:6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}
+.s-tbl{width:100%;border-collapse:collapse;margin-bottom:4px}
+.s-tbl th{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:left;padding:5px 4px 8px;border-bottom:1px solid var(--border)}
+.s-tbl td{padding:3px 4px;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,0.025)}
+.s-tbl input[type=text],.s-tbl input[type=number]{padding:5px 8px;font-size:12px}
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
+.s-hint{font-size:11px;color:var(--muted);margin-top:16px;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid var(--border);font-style:italic}
+.dl-box{margin-top:4px;padding:28px 24px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.25);border-radius:10px;text-align:center}
+.dl-box p{color:var(--muted);font-size:13px;margin-bottom:6px}
+.dl-box small{font-size:11px;color:var(--muted);display:block;margin-bottom:20px}
+.btn-dl{font-size:13px;padding:13px 32px;background:var(--green);color:#fff;letter-spacing:0;text-transform:none;font-family:'DM Sans',sans-serif;font-weight:700;border-radius:8px}
+.btn-dl:hover{background:#059669}
+
+@media(max-width:700px){.grid{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr !important}.save-bar{flex-direction:column;align-items:stretch}.save-bar .btn{width:100%}.s-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div class="app">
-  <div class="header">
-    <h1>3D PRINT PRICER</h1>
-    <span class="sub">FDM Cost Calculator</span>
-    <span class="config-badge" id="config_badge"></span>
-  </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('calc')">Calculator</button>
-    <button class="tab" onclick="switchTab('compare')">Compare</button>
-    <button class="tab" onclick="switchTab('history')">History <span id="hist_count" style="opacity:0.6"></span></button>
-  </div>
+<div class="header">
+  <h1>3D PRINT PRICER</h1>
+  <span class="sub">FDM Cost Calculator</span>
+  <span class="config-badge" id="config_badge"></span>
+</div>
 
-  <!-- ===== CALCULATOR ===== -->
-  <div id="tab-calc" class="tab-content active">
-    <div class="grid">
-      <div class="card">
-        <div class="card-title">Print parameters</div>
-        <label>Primary material</label>
-        <select id="mat" onchange="calc()"></select>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('calc')">Calculator</button>
+  <button class="tab" onclick="switchTab('compare')">Compare</button>
+  <button class="tab" onclick="switchTab('history')">History <span id="hist_count" style="opacity:0.6"></span></button>
+  <button class="tab" onclick="switchTab('settings')">⚙ Settings</button>
+</div>
 
-        <label>Primary material weight per piece (g)</label>
-        <input id="weight" type="number" value="100" min="0" oninput="calc()">
-
-        <div class="check-row">
-          <input type="checkbox" id="has_mat2" onchange="toggleMat2()">
-          <label for="has_mat2" class="mat2-label">Second material (dual)</label>
-        </div>
-        <div class="mat2-section" id="mat2_section">
-          <label style="color:var(--purple)">Material 2</label>
-          <select id="mat2" onchange="calc()"></select>
-          <label style="color:var(--purple)">Material 2 weight per piece (g)</label>
-          <input id="weight2" type="number" value="20" min="0" oninput="calc()">
-          <div class="hint">Supports, gaskets, interface — consumed weight of material 2</div>
-        </div>
-
-        <label>Quantity</label>
-        <input id="qty" type="number" value="1" min="1" oninput="calc()">
-        <label>Print time per piece (h)</label>
-        <input id="time" type="number" value="2.5" step="0.1" min="0.1" oninput="calc()">
-        <label>Purge / waste per piece (g)</label>
-        <input id="purge" type="number" value="8" min="0" oninput="calc()">
-        <div class="hint">AMS wipe tower — dual: typically 20–35g, single: 0–10g</div>
+<!-- ===== CALCULATOR ===== -->
+<div id="tab-calc" class="tab-content active">
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Print parameters</div>
+      <label>Primary material</label>
+      <select id="mat" onchange="calc()"></select>
+      <label>Primary material weight per piece (g)</label>
+      <input id="weight" type="number" value="100" min="0" oninput="calc()">
+      <div class="check-row">
+        <input type="checkbox" id="has_mat2" onchange="toggleMat2()">
+        <label for="has_mat2" class="mat2-label">Second material (dual)</label>
       </div>
-
-      <div class="card">
-        <div class="card-title">Services & setup</div>
-        <div class="check-row">
-          <input type="checkbox" id="has_project" checked onchange="toggleProject()">
-          <label for="has_project">CAD design</label>
-        </div>
-        <div id="project_fields">
-          <label>Design time (h)</label>
-          <input id="proj_hours" type="number" value="1" step="0.5" min="0" oninput="calc()">
-        </div>
-        <label>Scanning / Engineering</label>
-        <select id="extra" onchange="calc()"></select>
-        <label>Post-processing (per piece)</label>
-        <input id="post" type="number" value="15" min="0" oninput="calc()">
-        <div class="hint">Support removal, sanding, finishing</div>
-        <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border)">
-          <div class="card-title" style="margin-bottom:10px">Rates</div>
-          <label>Machine rate (/h)</label>
-          <input id="machine_h" type="number" value="25" min="1" oninput="calc()">
-          <label>Design rate (/h)</label>
-          <input id="project_h" type="number" value="120" min="1" oninput="calc()">
-        </div>
+      <div class="mat2-section" id="mat2_section">
+        <label style="color:var(--purple)">Material 2</label>
+        <select id="mat2" onchange="calc()"></select>
+        <label style="color:var(--purple)">Material 2 weight per piece (g)</label>
+        <input id="weight2" type="number" value="20" min="0" oninput="calc()">
+        <div class="hint">Supports, gaskets, interface — consumed weight of material 2</div>
       </div>
+      <label>Quantity</label>
+      <input id="qty" type="number" value="1" min="1" oninput="calc()">
+      <label>Print time per piece (h)</label>
+      <input id="time" type="number" value="2.5" step="0.1" min="0.1" oninput="calc()">
+      <label>Purge / waste per piece (g)</label>
+      <input id="purge" type="number" value="8" min="0" oninput="calc()">
+      <div class="hint">AMS wipe tower — dual: typically 20–35g, single: 0–10g</div>
+    </div>
 
-      <div class="card full">
-        <div class="card-title">Summary <span id="dual_badge" class="badge badge-dual" style="display:none">DUAL MATERIAL</span></div>
-        <div class="summary-grid">
-          <div>
-            <div class="res-row"><span class="res-label">Design + scan</span><span class="res-val" id="r_setup">—</span></div>
-            <div class="res-row"><span class="res-label" id="r_mat_label">Material (incl. purge)</span><span class="res-val" id="r_material">—</span></div>
-            <div class="res-row" id="r_mat2_row" style="display:none"><span class="res-label" id="r_mat2_label" style="color:var(--purple)">Material 2</span><span class="res-val" id="r_material2" style="color:var(--purple)">—</span></div>
-            <div class="res-row"><span class="res-label">Machine time</span><span class="res-val" id="r_machine">—</span></div>
-            <div class="res-row"><span class="res-label">Production margin</span><span class="res-val" id="r_margin">—</span></div>
-            <div class="res-row"><span class="res-label">Failure risk <span class="badge badge-risk" id="r_risk_badge">+5%</span></span><span class="res-val" id="r_risk">—</span></div>
-            <div class="res-row"><span class="res-label">Post-processing</span><span class="res-val" id="r_post">—</span></div>
-            <div class="res-row" id="discount_row" style="display:none"><span class="res-label">Volume discount <span class="badge badge-discount" id="r_disc_badge"></span></span><span class="res-val" id="r_discount" style="color:var(--green)">—</span></div>
-            <div class="res-row" style="border-bottom:none;padding-top:12px">
-              <span class="res-label" style="color:var(--text);font-weight:600">Total net</span>
-              <span class="res-val" style="font-size:15px;color:var(--text)" id="r_net">—</span>
-            </div>
-            <div class="discount-info" id="discount_info"></div>
-            <div class="min-note" id="min_note">⚠ Minimum order price applied</div>
-          </div>
-          <div>
-            <div class="total-box">
-              <div class="total-label" id="tax_label">Gross (incl. tax)</div>
-              <div class="total-price" id="r_gross">—</div>
-              <div class="total-sub" id="r_net_label">net: —</div>
-              <div class="per-piece" id="r_per_piece">— / pc</div>
-            </div>
-          </div>
-        </div>
-        <div class="save-bar">
-          <div class="field">
-            <label>Quote name</label>
-            <input id="save_name" type="text" placeholder="e.g. Motor mount v2">
-          </div>
-          <div class="field" style="flex:1.5">
-            <label>Note (optional)</label>
-            <input id="save_note" type="text" placeholder="e.g. client Smith, 2 week lead time">
-          </div>
-          <button class="btn btn-accent" id="save_btn" onclick="saveQuote()">Save</button>
-        </div>
+    <div class="card">
+      <div class="card-title">Services &amp; setup</div>
+      <div class="check-row">
+        <input type="checkbox" id="has_project" checked onchange="toggleProject()">
+        <label for="has_project">CAD design</label>
+      </div>
+      <div id="project_fields">
+        <label>Design time (h)</label>
+        <input id="proj_hours" type="number" value="1" step="0.5" min="0" oninput="calc()">
+      </div>
+      <label>Scanning / Engineering</label>
+      <select id="extra" onchange="calc()"></select>
+      <label>Post-processing (per piece)</label>
+      <input id="post" type="number" value="15" min="0" oninput="calc()">
+      <div class="hint">Support removal, sanding, finishing</div>
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:10px">Rates</div>
+        <label>Machine rate (/h)</label>
+        <input id="machine_h" type="number" value="25" min="1" oninput="calc()">
+        <label>Design rate (/h)</label>
+        <input id="project_h" type="number" value="120" min="1" oninput="calc()">
       </div>
     </div>
-  </div>
 
-  <!-- ===== COMPARE ===== -->
-  <div id="tab-compare" class="tab-content">
-    <div class="card">
-      <div class="card-title">Material comparison — gross per piece</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Price using current print parameters. Dual-material mode compares primary material only.</p>
-      <div style="overflow-x:auto">
-        <table class="cmp-table">
-          <thead><tr><th>Material</th><th>Filament</th><th>Margin</th><th>Risk</th><th style="min-width:140px">Gross / pc</th></tr></thead>
-          <tbody id="cmp_body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== HISTORY ===== -->
-  <div id="tab-history" class="tab-content">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
-        <div class="card-title" style="margin-bottom:0">Quote history</div>
-        <div style="display:flex;gap:8px">
-          <input id="history_search" type="text" placeholder="Search..." oninput="renderHistory()" style="width:180px;font-size:12px;padding:6px 10px">
-          <button class="btn btn-danger" onclick="clearHistory()" style="font-size:10px;padding:6px 12px">Clear all</button>
+    <div class="card full">
+      <div class="card-title">Summary <span id="dual_badge" class="badge badge-dual" style="display:none">DUAL MATERIAL</span></div>
+      <div class="summary-grid">
+        <div>
+          <div class="res-row"><span class="res-label">Design + scan</span><span class="res-val" id="r_setup">—</span></div>
+          <div class="res-row"><span class="res-label" id="r_mat_label">Material (incl. purge)</span><span class="res-val" id="r_material">—</span></div>
+          <div class="res-row" id="r_mat2_row" style="display:none"><span class="res-label" id="r_mat2_label" style="color:var(--purple)">Material 2</span><span class="res-val" id="r_material2" style="color:var(--purple)">—</span></div>
+          <div class="res-row"><span class="res-label">Machine time</span><span class="res-val" id="r_machine">—</span></div>
+          <div class="res-row"><span class="res-label">Production margin</span><span class="res-val" id="r_margin">—</span></div>
+          <div class="res-row"><span class="res-label">Failure risk <span class="badge badge-risk" id="r_risk_badge">+5%</span></span><span class="res-val" id="r_risk">—</span></div>
+          <div class="res-row"><span class="res-label">Post-processing</span><span class="res-val" id="r_post">—</span></div>
+          <div class="res-row" id="discount_row" style="display:none"><span class="res-label">Volume discount <span class="badge badge-discount" id="r_disc_badge"></span></span><span class="res-val" id="r_discount" style="color:var(--green)">—</span></div>
+          <div class="res-row" style="border-bottom:none;padding-top:12px">
+            <span class="res-label" style="color:var(--text);font-weight:600">Total net</span>
+            <span class="res-val" style="font-size:15px;color:var(--text)" id="r_net">—</span>
+          </div>
+          <div class="discount-info" id="discount_info"></div>
+          <div class="min-note" id="min_note">⚠ Minimum order price applied</div>
+        </div>
+        <div>
+          <div class="total-box">
+            <div class="total-label" id="tax_label">Gross (incl. tax)</div>
+            <div class="total-price" id="r_gross">—</div>
+            <div class="total-sub" id="r_net_label">net: —</div>
+            <div class="per-piece" id="r_per_piece">— / pc</div>
+          </div>
         </div>
       </div>
-      <div id="history_list"></div>
+      <div class="save-bar">
+        <div class="field">
+          <label>Quote name</label>
+          <input id="save_name" type="text" placeholder="e.g. Motor mount v2">
+        </div>
+        <div class="field" style="flex:1.5">
+          <label>Note (optional)</label>
+          <input id="save_note" type="text" placeholder="e.g. client Smith, 2 week lead time">
+        </div>
+        <button class="btn btn-accent" id="save_btn" onclick="saveQuote()">Save</button>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- ===== COMPARE ===== -->
+<div id="tab-compare" class="tab-content">
+  <div class="card">
+    <div class="card-title">Material comparison — gross per piece</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Price using current print parameters. Dual-material mode compares primary material only.</p>
+    <div style="overflow-x:auto">
+      <table class="cmp-table">
+        <thead><tr><th>Material</th><th>Filament</th><th>Margin</th><th>Risk</th><th style="min-width:140px">Gross / pc</th></tr></thead>
+        <tbody id="cmp_body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div id="tab-history" class="tab-content">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+      <div class="card-title" style="margin-bottom:0">Quote history</div>
+      <div style="display:flex;gap:8px">
+        <input id="history_search" type="text" placeholder="Search..." oninput="renderHistory()" style="width:180px;font-size:12px;padding:6px 10px">
+        <button class="btn btn-danger" onclick="clearHistory()" style="font-size:10px;padding:6px 12px">Clear all</button>
+      </div>
+    </div>
+    <div id="history_list"></div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div id="tab-settings" class="tab-content">
+
+  <!-- General -->
+  <div class="card s-section">
+    <div class="card-title">Ogólne</div>
+    <div class="s-grid">
+      <div>
+        <label>Waluta (symbol)</label>
+        <input id="cfg_currency" type="text" maxlength="4" placeholder="zł" oninput="applyGeneral()">
+        <label>Locale (formatowanie liczb)</label>
+        <input id="cfg_locale" type="text" placeholder="pl-PL" oninput="applyGeneral()">
+        <label>VAT (%)</label>
+        <input id="cfg_tax" type="number" min="0" max="100" placeholder="23" oninput="applyGeneral()">
+      </div>
+      <div>
+        <label>Minimalna wycena netto</label>
+        <input id="cfg_min" type="number" min="0" placeholder="50" oninput="applyGeneral()">
+        <label>Stawka maszyny (za godzinę)</label>
+        <input id="cfg_machine" type="number" min="1" placeholder="25" oninput="applyGeneral()">
+        <label>Stawka projektowania (za godzinę)</label>
+        <input id="cfg_design" type="number" min="1" placeholder="120" oninput="applyGeneral()">
+        <label>Dodatkowe ryzyko dual-material (%)</label>
+        <input id="cfg_dual_risk" type="number" min="0" max="50" placeholder="5" oninput="applyGeneral()">
+      </div>
+    </div>
+    <div class="s-hint">Locale przykłady: <strong>pl-PL</strong> (1 234,56 zł) · <strong>en-US</strong> (1,234.56 €) · <strong>de-DE</strong> (1.234,56 €)</div>
+  </div>
+
+  <!-- Materials -->
+  <div class="card s-section">
+    <div class="card-title">Materiały</div>
+    <div id="mat_table_container"></div>
+  </div>
+
+  <!-- Discounts -->
+  <div class="card s-section">
+    <div class="card-title">Rabaty ilościowe</div>
+    <div id="disc_table_container"></div>
+    <button class="btn btn-ghost" onclick="addDiscount()" style="margin-top:10px;font-size:10px;padding:6px 12px">+ Dodaj próg</button>
+  </div>
+
+  <!-- Scanning options -->
+  <div class="card s-section">
+    <div class="card-title">Opcje skanowania / dodatkowych usług</div>
+    <div id="scan_table_container"></div>
+    <button class="btn btn-ghost" onclick="addScanOption()" style="margin-top:10px;font-size:10px;padding:6px 12px">+ Dodaj opcję</button>
+  </div>
+
+  <!-- Download -->
+  <div class="dl-box">
+    <p>Pobierz kalkulator z Twoją konfiguracją jako pojedynczy plik HTML.</p>
+    <small>Zastąp obecny plik nowym — ustawienia będą w nim zapisane na stałe. Działa offline, bez instalacji.</small>
+    <button class="btn btn-dl" onclick="downloadConfigured()">⬇ Pobierz skonfigurowany kalkulator</button>
+  </div>
+
+</div>
+</div><!-- /.app -->
+
 <script>
+// Capture script element reference and original body before any DOM modifications
+const _SELF = document.currentScript;
+
 // =========================================================
-//  FALLBACK DEFAULTS (used if config.json is missing)
-// =========================================================
+// <<<CONFIG_START>>>
 const DEFAULTS = {
   currency:'€', locale:'en-US', tax_rate:0.21, min_net:15,
   dual_risk_bonus:0.05, machine_rate:25, design_rate:120,
@@ -261,27 +336,29 @@ const DEFAULTS = {
     ]
   }
 };
+// <<<CONFIG_END>>>
+// =========================================================
 
 // =========================================================
-//  RUNTIME STATE (populated from config or defaults)
+// RUNTIME STATE (populated from config or defaults)
 // =========================================================
 let CFG = {};
-let MATERIALS = {};   // flat: key → {name, price, margin, risk}
-let MAT_NAMES = {};   // flat: key → display name
+let MATERIALS = {}; // flat: key → {name, price, margin, risk}
+let MAT_NAMES = {}; // flat: key → display name
 let SUPPORT_KEYS = new Set();
 
-const $=id=>document.getElementById(id);
-const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML};
-let fmt = v => v.toFixed(2);  // replaced after config loads
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+let fmt = v => v.toFixed(2);
 
 // =========================================================
-//  CONFIG LOADER
+// CONFIG LOADER
 // =========================================================
-async function loadConfig(){
+async function loadConfig() {
   let raw;
   try {
     const resp = await fetch('config.json');
-    if(!resp.ok) throw new Error(resp.status);
+    if (!resp.ok) throw new Error(resp.status);
     raw = await resp.json();
     $('config_badge').textContent = 'config.json ✓';
     $('config_badge').className = 'config-badge config-ok';
@@ -291,62 +368,48 @@ async function loadConfig(){
     $('config_badge').className = 'config-badge config-fallback';
   }
 
-  // Merge with defaults for any missing keys
   CFG = { ...DEFAULTS, ...raw };
   CFG.materials = raw.materials || DEFAULTS.materials;
   CFG.discounts = raw.discounts || DEFAULTS.discounts;
   CFG.scanning_options = raw.scanning_options || DEFAULTS.scanning_options;
 
-  // Build flat material lookup
-  MATERIALS = {};
-  MAT_NAMES = {};
-  SUPPORT_KEYS = new Set();
-  for(const [group, list] of Object.entries(CFG.materials)){
-    for(const m of list){
-      MATERIALS[m.key] = { price:m.price, margin:m.margin, risk:m.risk };
-      MAT_NAMES[m.key] = m.name;
-      if(group === 'support') SUPPORT_KEYS.add(m.key);
-    }
-  }
+  rebuildMats();
+  fmt = v => v.toLocaleString(CFG.locale, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ' + CFG.currency;
 
-  // Setup formatter
-  fmt = v => v.toLocaleString(CFG.locale,{minimumFractionDigits:2,maximumFractionDigits:2})+' '+CFG.currency;
-
-  // Apply rates from config
   $('machine_h').value = CFG.machine_rate;
   $('project_h').value = CFG.design_rate;
   $('post').value = CFG.default_post_processing;
 
-  // Tax label
   const pct = Math.round(CFG.tax_rate * 100);
   $('tax_label').textContent = pct > 0 ? `Gross (${pct}% tax)` : 'Total';
 
   buildDropdowns();
   calc();
+  buildSettingsUI();
 }
 
 // =========================================================
-//  BUILD DROPDOWNS FROM CONFIG
+// BUILD DROPDOWNS FROM CONFIG
 // =========================================================
 const GROUP_LABELS = {
   standard:'Standard', reinforced:'Reinforced / CF',
   flexible:'Flexible', support:'Support / Interface'
 };
 
-function buildDropdowns(){
+function buildDropdowns() {
   buildMaterialSelect('mat', false);
   buildMaterialSelect('mat2', true);
   buildScanSelect();
 }
 
-function buildMaterialSelect(id, includeSupport){
+function buildMaterialSelect(id, includeSupport) {
   const sel = $(id);
   sel.innerHTML = '';
-  for(const [group, list] of Object.entries(CFG.materials)){
-    if(!includeSupport && group === 'support') continue;
+  for (const [group, list] of Object.entries(CFG.materials)) {
+    if (!includeSupport && group === 'support') continue;
     const og = document.createElement('optgroup');
     og.label = GROUP_LABELS[group] || group;
-    for(const m of list){
+    for (const m of list) {
       const opt = document.createElement('option');
       opt.value = m.key;
       opt.textContent = `${m.name} — ${fmt(m.price)}/kg`;
@@ -356,10 +419,10 @@ function buildMaterialSelect(id, includeSupport){
   }
 }
 
-function buildScanSelect(){
+function buildScanSelect() {
   const sel = $('extra');
   sel.innerHTML = '';
-  for(const opt of CFG.scanning_options){
+  for (const opt of CFG.scanning_options) {
     const o = document.createElement('option');
     o.value = opt.price;
     o.textContent = opt.price > 0 ? `${opt.label} (${fmt(opt.price)})` : opt.label;
@@ -368,230 +431,235 @@ function buildScanSelect(){
 }
 
 // =========================================================
-//  TABS & TOGGLES
+// TABS & TOGGLES
 // =========================================================
-function switchTab(name){
-  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
-  $('tab-'+name).classList.add('active');
-  document.querySelectorAll('.tab')[{calc:0,compare:1,history:2}[name]].classList.add('active');
-  if(name==='compare')buildComparison();
-  if(name==='history')renderHistory();
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  $('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab')[{calc:0, compare:1, history:2, settings:3}[name]].classList.add('active');
+  if (name === 'compare') buildComparison();
+  if (name === 'history') renderHistory();
+  if (name === 'settings') buildSettingsUI();
 }
-function toggleProject(){
-  $('project_fields').style.display=$('has_project').checked?'block':'none';
+
+function toggleProject() {
+  $('project_fields').style.display = $('has_project').checked ? 'block' : 'none';
   calc();
 }
-function toggleMat2(){
-  const on=$('has_mat2').checked;
-  $('mat2_section').classList.toggle('active',on);
-  $('dual_badge').style.display=on?'inline-block':'none';
-  $('r_mat2_row').style.display=on?'flex':'none';
-  if(on && +$('purge').value<20) $('purge').value=25;
-  if(!on && +$('purge').value>=20) $('purge').value=8;
+
+function toggleMat2() {
+  const on = $('has_mat2').checked;
+  $('mat2_section').classList.toggle('active', on);
+  $('dual_badge').style.display = on ? 'inline-block' : 'none';
+  $('r_mat2_row').style.display = on ? 'flex' : 'none';
+  if (on && +$('purge').value < 20) $('purge').value = 25;
+  if (!on && +$('purge').value >= 20) $('purge').value = 8;
   calc();
 }
 
 // =========================================================
-//  CORE CALC
+// CORE CALC
 // =========================================================
-function getParams(){
+function getParams() {
   return {
-    matKey:$('mat').value,
-    hasMat2:$('has_mat2').checked,
-    mat2Key:$('mat2').value,
-    weight2G:Math.max(0,+$('weight2').value||0),
-    qty:Math.max(1,+$('qty').value||1),
-    weightG:Math.max(0,+$('weight').value||0),
-    timeH:Math.max(0,+$('time').value||0),
-    purgeG:Math.max(0,+$('purge').value||0),
-    postPer:Math.max(0,+$('post').value||0),
-    machineH:Math.max(1,+$('machine_h').value||CFG.machine_rate),
-    projectH:Math.max(1,+$('project_h').value||CFG.design_rate),
-    hasProj:$('has_project').checked,
-    projHrs:+$('proj_hours').value||0,
-    scanCost:+$('extra').value||0,
+    matKey: $('mat').value,
+    hasMat2: $('has_mat2').checked,
+    mat2Key: $('mat2').value,
+    weight2G: Math.max(0, +$('weight2').value || 0),
+    qty: Math.max(1, +$('qty').value || 1),
+    weightG: Math.max(0, +$('weight').value || 0),
+    timeH: Math.max(0, +$('time').value || 0),
+    purgeG: Math.max(0, +$('purge').value || 0),
+    postPer: Math.max(0, +$('post').value || 0),
+    machineH: Math.max(1, +$('machine_h').value || CFG.machine_rate),
+    projectH: Math.max(1, +$('project_h').value || CFG.design_rate),
+    hasProj: $('has_project').checked,
+    projHrs: +$('proj_hours').value || 0,
+    scanCost: +$('extra').value || 0,
   };
 }
 
-function calcFull(p, overrideMatKey){
+function calcFull(p, overrideMatKey) {
   const matKey = overrideMatKey || p.matKey;
   const m1 = MATERIALS[matKey];
-  if(!m1) return null;
+  if (!m1) return null;
+
   const isDual = p.hasMat2 && !overrideMatKey;
   const m2 = isDual ? MATERIALS[p.mat2Key] : null;
 
-  const setupTotal = (p.hasProj?p.projHrs*p.projectH:0) + p.scanCost;
-
+  const setupTotal = (p.hasProj ? p.projHrs * p.projectH : 0) + p.scanCost;
   const w1g = p.weightG, w2g = isDual ? p.weight2G : 0;
   const totalPartG = w1g + w2g;
-  const purge1g = totalPartG > 0 ? p.purgeG*(w1g/totalPartG) : p.purgeG;
-  const purge2g = totalPartG > 0 ? p.purgeG*(w2g/totalPartG) : 0;
+  const purge1g = totalPartG > 0 ? p.purgeG * (w1g / totalPartG) : p.purgeG;
+  const purge2g = totalPartG > 0 ? p.purgeG * (w2g / totalPartG) : 0;
 
-  const mat1Raw = (w1g+purge1g)/1000*m1.price;
-  const mat2Raw = isDual ? (w2g+purge2g)/1000*m2.price : 0;
-  const matTotalRaw = mat1Raw+mat2Raw;
+  const mat1Raw = (w1g + purge1g) / 1000 * m1.price;
+  const mat2Raw = isDual ? (w2g + purge2g) / 1000 * m2.price : 0;
+  const matTotalRaw = mat1Raw + mat2Raw;
+  const machRaw = p.timeH * p.machineH;
+  const baseProd = matTotalRaw + machRaw;
 
-  const machRaw = p.timeH*p.machineH;
-  const baseProd = matTotalRaw+machRaw;
+  const effectiveMargin = isDual ? Math.max(m1.margin, m2.margin) : m1.margin;
+  const withMargin = baseProd * effectiveMargin;
+  const baseRisk = isDual ? Math.max(m1.risk, m2.risk) + CFG.dual_risk_bonus : m1.risk;
+  const effectiveRisk = Math.min(baseRisk, 0.50);
+  const riskAmt = withMargin * effectiveRisk;
+  const withRisk = withMargin + riskAmt;
+  const postTot = p.postPer * p.qty;
+  const prodGross = withRisk * p.qty + postTot;
 
-  const effectiveMargin = isDual ? Math.max(m1.margin,m2.margin) : m1.margin;
-  const withMargin = baseProd*effectiveMargin;
+  let dPct = 0, dLabel = '';
+  for (const d of CFG.discounts) if (p.qty >= d.min) { dPct = d.pct; dLabel = d.label; break; }
+  const dAmt = prodGross * dPct;
 
-  const baseRisk = isDual ? Math.max(m1.risk,m2.risk)+CFG.dual_risk_bonus : m1.risk;
-  const effectiveRisk = Math.min(baseRisk,0.50);
-  const riskAmt = withMargin*effectiveRisk;
-  const withRisk = withMargin+riskAmt;
-
-  const postTot = p.postPer*p.qty;
-  const prodGross = withRisk*p.qty+postTot;
-
-  let dPct=0,dLabel='';
-  for(const d of CFG.discounts) if(p.qty>=d.min){dPct=d.pct;dLabel=d.label;break;}
-  const dAmt = prodGross*dPct;
-
-  let net = setupTotal+prodGross-dAmt;
+  let net = setupTotal + prodGross - dAmt;
   let isMin = false;
-  if(net<CFG.min_net){net=CFG.min_net;isMin=true;}
-  const gross = net*(1+CFG.tax_rate);
+  if (net < CFG.min_net) { net = CFG.min_net; isMin = true; }
+  const gross = net * (1 + CFG.tax_rate);
 
   return {
     setupTotal,
-    mat1Total:mat1Raw*p.qty, mat2Total:mat2Raw*p.qty,
-    matTotalRaw:matTotalRaw*p.qty,
-    machTotal:machRaw*p.qty,
-    marginTotal:(withMargin-baseProd)*p.qty,
+    mat1Total: mat1Raw * p.qty, mat2Total: mat2Raw * p.qty,
+    matTotalRaw: matTotalRaw * p.qty,
+    machTotal: machRaw * p.qty,
+    marginTotal: (withMargin - baseProd) * p.qty,
     effectiveMargin, effectiveRisk,
-    riskTotal:riskAmt*p.qty, postTotal:postTot,
+    riskTotal: riskAmt * p.qty, postTotal: postTot,
     dPct, dLabel, dAmt,
-    net, gross, perPiece:gross/p.qty, isMin, isDual,
-    mat1Name:MAT_NAMES[matKey],
-    mat2Name:isDual?MAT_NAMES[p.mat2Key]:null,
-    price:m1.price, margin:m1.margin, risk:m1.risk,
+    net, gross, perPiece: gross / p.qty, isMin, isDual,
+    mat1Name: MAT_NAMES[matKey],
+    mat2Name: isDual ? MAT_NAMES[p.mat2Key] : null,
+    price: m1.price, margin: m1.margin, risk: m1.risk,
   };
 }
 
-function calc(){
-  const p=getParams();
-  const r=calcFull(p);
-  if(!r) return;
+function calc() {
+  const p = getParams();
+  const r = calcFull(p);
+  if (!r) return;
 
-  $('r_setup').textContent=fmt(r.setupTotal);
-  if(r.isDual){
-    $('r_mat_label').textContent=r.mat1Name+' (incl. purge)';
-    $('r_material').textContent=fmt(r.mat1Total);
-    $('r_mat2_label').textContent=r.mat2Name+' (incl. purge)';
-    $('r_material2').textContent=fmt(r.mat2Total);
+  $('r_setup').textContent = fmt(r.setupTotal);
+  if (r.isDual) {
+    $('r_mat_label').textContent = r.mat1Name + ' (incl. purge)';
+    $('r_material').textContent = fmt(r.mat1Total);
+    $('r_mat2_label').textContent = r.mat2Name + ' (incl. purge)';
+    $('r_material2').textContent = fmt(r.mat2Total);
   } else {
-    $('r_mat_label').textContent='Material (incl. purge)';
-    $('r_material').textContent=fmt(r.matTotalRaw);
+    $('r_mat_label').textContent = 'Material (incl. purge)';
+    $('r_material').textContent = fmt(r.matTotalRaw);
   }
-  $('r_machine').textContent=fmt(r.machTotal);
-  $('r_margin').textContent=fmt(r.marginTotal);
-  $('r_risk_badge').textContent='+'+Math.round(r.effectiveRisk*100)+'%';
-  $('r_risk').textContent=fmt(r.riskTotal);
-  $('r_post').textContent=fmt(r.postTotal);
+  $('r_machine').textContent = fmt(r.machTotal);
+  $('r_margin').textContent = fmt(r.marginTotal);
+  $('r_risk_badge').textContent = '+' + Math.round(r.effectiveRisk * 100) + '%';
+  $('r_risk').textContent = fmt(r.riskTotal);
+  $('r_post').textContent = fmt(r.postTotal);
 
-  if(r.dPct>0){
-    $('discount_row').style.display='flex';
-    $('r_disc_badge').textContent='-'+r.dLabel;
-    $('r_discount').textContent='-'+fmt(r.dAmt);
-    $('discount_info').style.display='block';
-    $('discount_info').textContent=`${r.dLabel} discount for ${p.qty} pcs (tier: ≥${CFG.discounts.find(d=>d.pct===r.dPct).min} pcs)`;
+  if (r.dPct > 0) {
+    $('discount_row').style.display = 'flex';
+    $('r_disc_badge').textContent = '-' + r.dLabel;
+    $('r_discount').textContent = '-' + fmt(r.dAmt);
+    $('discount_info').style.display = 'block';
+    $('discount_info').textContent = `${r.dLabel} discount for ${p.qty} pcs (tier: ≥${CFG.discounts.find(d => d.pct === r.dPct).min} pcs)`;
   } else {
-    $('discount_row').style.display='none';
-    $('discount_info').style.display='none';
+    $('discount_row').style.display = 'none';
+    $('discount_info').style.display = 'none';
   }
-  $('r_net').textContent=fmt(r.net);
-  $('r_gross').textContent=fmt(r.gross);
-  $('r_net_label').textContent='net: '+fmt(r.net);
-  $('r_per_piece').textContent=fmt(r.perPiece)+' / pc';
-  $('min_note').style.display=r.isMin?'block':'none';
+
+  $('r_net').textContent = fmt(r.net);
+  $('r_gross').textContent = fmt(r.gross);
+  $('r_net_label').textContent = 'net: ' + fmt(r.net);
+  $('r_per_piece').textContent = fmt(r.perPiece) + ' / pc';
+  $('min_note').style.display = r.isMin ? 'block' : 'none';
   updateHistCount();
 }
 
 // =========================================================
-//  COMPARISON
+// COMPARISON
 // =========================================================
-function buildComparison(){
-  const p=getParams();
-  const printable = Object.keys(MATERIALS).filter(k=>!SUPPORT_KEYS.has(k));
-  const rows = printable.map(k=>{
-    const r = calcFull({...p,hasMat2:false},k);
+function buildComparison() {
+  const p = getParams();
+  const printable = Object.keys(MATERIALS).filter(k => !SUPPORT_KEYS.has(k));
+  const rows = printable.map(k => {
+    const r = calcFull({...p, hasMat2:false}, k);
     return r ? {key:k, name:MAT_NAMES[k], ...r} : null;
   }).filter(Boolean);
-  const minP=Math.min(...rows.map(r=>r.perPiece));
-  const maxP=Math.max(...rows.map(r=>r.perPiece));
-  const range=maxP-minP||1;
 
-  $('cmp_body').innerHTML=rows.map(r=>{
-    const cheap=r.perPiece===minP;
-    const sel=r.key===p.matKey;
-    const barW=Math.round(((r.perPiece-minP)/range)*90+10);
-    const cls=[cheap?'cmp-cheapest':'',sel?'cmp-selected':''].filter(Boolean).join(' ');
+  const minP = Math.min(...rows.map(r => r.perPiece));
+  const maxP = Math.max(...rows.map(r => r.perPiece));
+  const range = maxP - minP || 1;
+
+  $('cmp_body').innerHTML = rows.map(r => {
+    const cheap = r.perPiece === minP;
+    const sel = r.key === p.matKey;
+    const barW = Math.round(((r.perPiece - minP) / range) * 90 + 10);
+    const cls = [cheap ? 'cmp-cheapest' : '', sel ? 'cmp-selected' : ''].filter(Boolean).join(' ');
     return `<tr class="${cls}">
-      <td>${r.name} ${cheap?'<span class="badge badge-cheapest">cheapest</span>':''}${sel?'<span class="badge badge-selected">selected</span>':''}</td>
-      <td>${fmt(r.price)}/kg</td><td>×${r.margin}</td><td>+${Math.round(r.risk*100)}%</td>
-      <td><span class="cmp-bar${cheap?' cheapest':''}" style="width:${barW}px"></span>${fmt(r.perPiece)}</td>
+      <td>${r.name} ${cheap ? '<span class="badge badge-cheapest">cheapest</span>' : ''}${sel ? '<span class="badge badge-selected">selected</span>' : ''}</td>
+      <td>${fmt(r.price)}/kg</td><td>×${r.margin}</td><td>+${Math.round(r.risk * 100)}%</td>
+      <td><span class="cmp-bar${cheap ? ' cheapest' : ''}" style="width:${barW}px"></span>${fmt(r.perPiece)}</td>
     </tr>`;
   }).join('');
 }
 
 // =========================================================
-//  HISTORY
+// HISTORY
 // =========================================================
-function getHist(){try{return JSON.parse(localStorage.getItem('print_pricer_quotes')||'[]')}catch{return[]}}
-function setHist(a){localStorage.setItem('print_pricer_quotes',JSON.stringify(a));updateHistCount()}
-function updateHistCount(){const n=getHist().length;$('hist_count').textContent=n?`(${n})`:'';}
+function getHist() { try { return JSON.parse(localStorage.getItem('print_pricer_quotes') || '[]'); } catch { return []; } }
+function setHist(a) { localStorage.setItem('print_pricer_quotes', JSON.stringify(a)); updateHistCount(); }
+function updateHistCount() { const n = getHist().length; $('hist_count').textContent = n ? `(${n})` : ''; }
 
-function saveQuote(){
-  const name=$('save_name').value.trim();
-  if(!name){$('save_name').style.borderColor='var(--red)';$('save_name').focus();setTimeout(()=>$('save_name').style.borderColor='',1500);return;}
-  const p=getParams();const r=calcFull(p);
-  if(!r)return;
-  const entry={
-    id:Date.now(),name,note:$('save_note').value.trim(),
+function saveQuote() {
+  const name = $('save_name').value.trim();
+  if (!name) {
+    $('save_name').style.borderColor = 'var(--red)'; $('save_name').focus();
+    setTimeout(() => $('save_name').style.borderColor = '', 1500); return;
+  }
+  const p = getParams(); const r = calcFull(p);
+  if (!r) return;
+  const entry = {
+    id:Date.now(), name, note:$('save_note').value.trim(),
     date:new Date().toISOString(),
-    mat:MAT_NAMES[p.matKey],matKey:p.matKey,
-    hasMat2:p.hasMat2,mat2:p.hasMat2?MAT_NAMES[p.mat2Key]:null,mat2Key:p.hasMat2?p.mat2Key:null,
-    weight2G:p.weight2G,qty:p.qty,weightG:p.weightG,timeH:p.timeH,
-    purgeG:p.purgeG,postPer:p.postPer,
-    machineH:p.machineH,projectH:p.projectH,
-    hasProj:p.hasProj,projHrs:p.projHrs,scanCost:p.scanCost,
-    net:r.net,gross:r.gross,perPiece:r.perPiece
+    mat:MAT_NAMES[p.matKey], matKey:p.matKey,
+    hasMat2:p.hasMat2, mat2:p.hasMat2?MAT_NAMES[p.mat2Key]:null, mat2Key:p.hasMat2?p.mat2Key:null,
+    weight2G:p.weight2G, qty:p.qty, weightG:p.weightG, timeH:p.timeH,
+    purgeG:p.purgeG, postPer:p.postPer,
+    machineH:p.machineH, projectH:p.projectH,
+    hasProj:p.hasProj, projHrs:p.projHrs, scanCost:p.scanCost,
+    net:r.net, gross:r.gross, perPiece:r.perPiece
   };
-  const h=getHist();h.unshift(entry);setHist(h);
-  $('save_name').value='';$('save_note').value='';
-  const btn=$('save_btn');
-  btn.textContent='✓ Saved';btn.style.background='var(--green)';
-  setTimeout(()=>{btn.textContent='Save';btn.style.background='';},1200);
+  const h = getHist(); h.unshift(entry); setHist(h);
+  $('save_name').value = ''; $('save_note').value = '';
+  const btn = $('save_btn');
+  btn.textContent = '✓ Saved'; btn.style.background = 'var(--green)';
+  setTimeout(() => { btn.textContent = 'Save'; btn.style.background = ''; }, 1200);
 }
 
-function renderHistory(){
-  const hist=getHist();
-  const q=($('history_search')?.value||'').toLowerCase();
-  const list=q?hist.filter(h=>h.name.toLowerCase().includes(q)||(h.note||'').toLowerCase().includes(q)||h.mat.toLowerCase().includes(q)||(h.mat2||'').toLowerCase().includes(q)):hist;
-  if(!list.length){
-    $('history_list').innerHTML=`<div class="empty-state"><span>📋</span>${hist.length?'No results for "'+esc(q)+'".':'No quotes yet. Save one from the calculator.'}</div>`;
+function renderHistory() {
+  const hist = getHist();
+  const q = ($('history_search')?.value || '').toLowerCase();
+  const list = q ? hist.filter(h => h.name.toLowerCase().includes(q) || (h.note || '').toLowerCase().includes(q) || h.mat.toLowerCase().includes(q) || (h.mat2 || '').toLowerCase().includes(q)) : hist;
+  if (!list.length) {
+    $('history_list').innerHTML = `<div class="empty-state"><span>📋</span>${hist.length ? 'No results for "' + esc(q) + '".' : 'No quotes yet. Save one from the calculator.'}</div>`;
     return;
   }
-  $('history_list').innerHTML=list.map(h=>{
-    const d=new Date(h.date);
-    const ds=d.toLocaleDateString(CFG.locale,{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString(CFG.locale,{hour:'2-digit',minute:'2-digit'});
-    const matInfo=h.hasMat2?`${h.mat} + ${h.mat2}`:h.mat;
-    const dualTag=h.hasMat2?' <span class="badge badge-dual">DUAL</span>':'';
+  $('history_list').innerHTML = list.map(h => {
+    const d = new Date(h.date);
+    const ds = d.toLocaleDateString(CFG.locale, {day:'numeric',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString(CFG.locale, {hour:'2-digit',minute:'2-digit'});
+    const matInfo = h.hasMat2 ? `${h.mat} + ${h.mat2}` : h.mat;
+    const dualTag = h.hasMat2 ? ' <span class="badge badge-dual">DUAL</span>' : '';
     return `<div class="history-item">
       <div class="history-header">
         <div class="history-title">${esc(h.name)}${dualTag}</div>
         <div class="history-date">${ds}</div>
       </div>
-      <div class="history-meta">${matInfo} · ${h.qty} pcs · ${h.weightG}g${h.hasMat2?'+'+h.weight2G+'g':''} · ${h.timeH}h/pc</div>
+      <div class="history-meta">${matInfo} · ${h.qty} pcs · ${h.weightG}g${h.hasMat2 ? '+'+h.weight2G+'g' : ''} · ${h.timeH}h/pc</div>
       <div class="history-prices">
         <span class="history-price">${fmt(h.gross)}</span>
         <span class="history-price-sm">${fmt(h.perPiece)} /pc</span>
         <span class="history-price-muted">net ${fmt(h.net)}</span>
       </div>
-      ${h.note?'<div class="history-note">'+esc(h.note)+'</div>':''}
+      ${h.note ? '<div class="history-note">' + esc(h.note) + '</div>' : ''}
       <div class="history-actions">
         <button class="btn btn-ghost" onclick="loadQuote(${h.id})">Load</button>
         <button class="btn btn-danger" onclick="deleteQuote(${h.id})">Delete</button>
@@ -600,25 +668,236 @@ function renderHistory(){
   }).join('');
 }
 
-function loadQuote(id){
-  const h=getHist().find(x=>x.id===id);
-  if(!h)return;
-  $('mat').value=h.matKey;$('qty').value=h.qty;$('weight').value=h.weightG;$('time').value=h.timeH;
-  if(h.purgeG!=null)$('purge').value=h.purgeG;
-  if(h.postPer!=null)$('post').value=h.postPer;
-  if(h.machineH)$('machine_h').value=h.machineH;
-  if(h.projectH)$('project_h').value=h.projectH;
-  $('has_project').checked=h.hasProj!==false;
+function loadQuote(id) {
+  const h = getHist().find(x => x.id === id);
+  if (!h) return;
+  $('mat').value = h.matKey; $('qty').value = h.qty; $('weight').value = h.weightG; $('time').value = h.timeH;
+  if (h.purgeG != null) $('purge').value = h.purgeG;
+  if (h.postPer != null) $('post').value = h.postPer;
+  if (h.machineH) $('machine_h').value = h.machineH;
+  if (h.projectH) $('project_h').value = h.projectH;
+  $('has_project').checked = h.hasProj !== false;
   toggleProject();
-  if(h.projHrs!=null)$('proj_hours').value=h.projHrs;
-  for(const opt of $('extra').options){if(+opt.value===h.scanCost){opt.selected=true;break;}}
-  $('has_mat2').checked=!!h.hasMat2;
-  if(h.hasMat2&&h.mat2Key){$('mat2').value=h.mat2Key;$('weight2').value=h.weight2G||0;}
-  toggleMat2();calc();switchTab('calc');
+  if (h.projHrs != null) $('proj_hours').value = h.projHrs;
+  for (const opt of $('extra').options) { if (+opt.value === h.scanCost) { opt.selected = true; break; } }
+  $('has_mat2').checked = !!h.hasMat2;
+  if (h.hasMat2 && h.mat2Key) { $('mat2').value = h.mat2Key; $('weight2').value = h.weight2G || 0; }
+  toggleMat2(); calc(); switchTab('calc');
 }
 
-function deleteQuote(id){setHist(getHist().filter(x=>x.id!==id));renderHistory();}
-function clearHistory(){if(!confirm('Delete all saved quotes?'))return;setHist([]);renderHistory();}
+function deleteQuote(id) { setHist(getHist().filter(x => x.id !== id)); renderHistory(); }
+function clearHistory() { if (!confirm('Delete all saved quotes?')) return; setHist([]); renderHistory(); }
+
+// =========================================================
+// SETTINGS
+// =========================================================
+function rebuildMats() {
+  MATERIALS = {}; MAT_NAMES = {}; SUPPORT_KEYS = new Set();
+  for (const [g, list] of Object.entries(CFG.materials)) {
+    for (const m of list) {
+      MATERIALS[m.key] = {price: m.price, margin: m.margin, risk: m.risk};
+      MAT_NAMES[m.key] = m.name;
+      if (g === 'support') SUPPORT_KEYS.add(m.key);
+    }
+  }
+}
+
+function buildSettingsUI() {
+  $('cfg_currency').value = CFG.currency;
+  $('cfg_locale').value = CFG.locale;
+  $('cfg_tax').value = Math.round(CFG.tax_rate * 100);
+  $('cfg_min').value = CFG.min_net;
+  $('cfg_machine').value = CFG.machine_rate;
+  $('cfg_design').value = CFG.design_rate;
+  $('cfg_dual_risk').value = Math.round(CFG.dual_risk_bonus * 100);
+  renderMaterialsTable();
+  renderDiscountsTable();
+  renderScanningTable();
+}
+
+function applyGeneral() {
+  CFG.currency = $('cfg_currency').value.trim() || '€';
+  CFG.locale = $('cfg_locale').value.trim() || 'pl-PL';
+  CFG.tax_rate = Math.max(0, Math.min(1, (+$('cfg_tax').value || 0) / 100));
+  CFG.min_net = Math.max(0, +$('cfg_min').value || 0);
+  CFG.machine_rate = Math.max(1, +$('cfg_machine').value || 25);
+  CFG.design_rate = Math.max(1, +$('cfg_design').value || 120);
+  CFG.dual_risk_bonus = Math.max(0, (+$('cfg_dual_risk').value || 0) / 100);
+  fmt = v => v.toLocaleString(CFG.locale, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ' + CFG.currency;
+  const pct = Math.round(CFG.tax_rate * 100);
+  $('tax_label').textContent = pct > 0 ? `Gross (${pct}% tax)` : 'Total';
+  $('machine_h').value = CFG.machine_rate;
+  $('project_h').value = CFG.design_rate;
+  buildDropdowns();
+  calc();
+}
+
+function renderMaterialsTable() {
+  let html = '';
+  for (const [group, mats] of Object.entries(CFG.materials)) {
+    const label = GROUP_LABELS[group] || group;
+    html += `<div class="s-group-hdr">
+      <span>${label}</span>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="addMaterial('${group}')">+ Dodaj</button>
+    </div>
+    <table class="s-tbl">
+      <thead><tr><th style="width:40%">Nazwa</th><th>Cena/kg</th><th>Mnożnik</th><th>Ryzyko %</th><th></th></tr></thead>
+      <tbody>
+      ${mats.map((m, i) => `<tr>
+        <td><input type="text" value="${esc(m.name)}" style="width:100%" onchange="updateMat('${group}',${i},'name',this.value)"></td>
+        <td><input type="number" value="${m.price}" step="1" min="0" style="width:72px" onchange="updateMat('${group}',${i},'price',+this.value)"></td>
+        <td><input type="number" value="${m.margin}" step="0.1" min="1" style="width:64px" onchange="updateMat('${group}',${i},'margin',+this.value)"></td>
+        <td><input type="number" value="${Math.round(m.risk * 100)}" step="1" min="0" max="50" style="width:60px" onchange="updateMat('${group}',${i},'risk',+this.value/100)"></td>
+        <td><button class="btn btn-danger" style="padding:3px 8px;font-size:10px" onclick="removeMat('${group}',${i})">✕</button></td>
+      </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }
+  $('mat_table_container').innerHTML = html;
+}
+
+function updateMat(group, idx, field, value) {
+  CFG.materials[group][idx][field] = value;
+  rebuildMats();
+  buildDropdowns();
+  calc();
+}
+
+function addMaterial(group) {
+  const key = 'custom_' + Date.now();
+  CFG.materials[group].push({key, name:'Nowy materiał', price:30, margin:2.0, risk:0.05});
+  renderMaterialsTable();
+  rebuildMats();
+  buildDropdowns();
+  calc();
+}
+
+function removeMat(group, idx) {
+  if (CFG.materials[group].length <= 1) {
+    alert('Musi pozostać co najmniej jeden materiał w grupie.');
+    return;
+  }
+  CFG.materials[group].splice(idx, 1);
+  renderMaterialsTable();
+  rebuildMats();
+  buildDropdowns();
+  calc();
+}
+
+function renderDiscountsTable() {
+  $('disc_table_container').innerHTML = `
+    <table class="s-tbl">
+      <thead><tr><th>Min. szt.</th><th>Rabat %</th><th></th></tr></thead>
+      <tbody>
+      ${CFG.discounts.map((d, i) => `<tr>
+        <td><input type="number" value="${d.min}" min="1" style="width:80px" onchange="updateDiscount(${i},'min',+this.value)"></td>
+        <td><input type="number" value="${Math.round(d.pct * 100)}" min="0" max="100" style="width:72px" onchange="updateDiscount(${i},'pct',+this.value/100)"></td>
+        <td><button class="btn btn-danger" style="padding:3px 8px;font-size:10px" onclick="removeDiscount(${i})">✕</button></td>
+      </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function updateDiscount(idx, field, value) {
+  CFG.discounts[idx][field] = value;
+  if (field === 'pct') CFG.discounts[idx].label = Math.round(value * 100) + '%';
+  calc();
+}
+
+function addDiscount() {
+  CFG.discounts.push({min:5, pct:0.03, label:'3%'});
+  renderDiscountsTable();
+}
+
+function removeDiscount(idx) {
+  CFG.discounts.splice(idx, 1);
+  renderDiscountsTable();
+  calc();
+}
+
+function renderScanningTable() {
+  $('scan_table_container').innerHTML = `
+    <table class="s-tbl">
+      <thead><tr><th style="width:60%">Etykieta</th><th>Cena</th><th></th></tr></thead>
+      <tbody>
+      ${CFG.scanning_options.map((s, i) => `<tr>
+        <td><input type="text" value="${esc(s.label)}" style="width:100%" onchange="updateScan(${i},'label',this.value)"></td>
+        <td><input type="number" value="${s.price}" min="0" style="width:80px" onchange="updateScan(${i},'price',+this.value)"></td>
+        <td><button class="btn btn-danger" style="padding:3px 8px;font-size:10px" onclick="removeScan(${i})">✕</button></td>
+      </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function updateScan(idx, field, value) {
+  CFG.scanning_options[idx][field] = value;
+  buildScanSelect();
+}
+
+function addScanOption() {
+  CFG.scanning_options.push({label:'Nowa usługa', price:0});
+  renderScanningTable();
+}
+
+function removeScan(idx) {
+  if (CFG.scanning_options.length <= 1) return;
+  CFG.scanning_options.splice(idx, 1);
+  renderScanningTable();
+  buildScanSelect();
+}
+
+// =========================================================
+// DOWNLOAD CONFIGURED
+// =========================================================
+function downloadConfigured() {
+  const btn = event.currentTarget;
+  const scriptText = _SELF.textContent;
+
+  // Locate CONFIG markers and replace DEFAULTS with current CFG
+  const startMarker = '// <<<CONFIG_START>>>';
+  const endMarker   = '// <<<CONFIG_END>>>';
+  const si = scriptText.indexOf(startMarker);
+  const ei = scriptText.indexOf(endMarker) + endMarker.length;
+
+  if (si === -1 || ei === endMarker.length - 1) {
+    alert('Błąd: nie znaleziono markerów konfiguracji w pliku. Upewnij się, że używasz oryginalnego pliku.');
+    return;
+  }
+
+  const newScriptText =
+    scriptText.substring(0, si) +
+    startMarker + '\n' +
+    'const DEFAULTS = ' + JSON.stringify(CFG, null, 2) + ';\n' +
+    endMarker +
+    scriptText.substring(ei);
+
+  // Split the current page HTML on the script content and rejoin with new script
+  const pageHtml = '<!doctype html>\n' + document.documentElement.outerHTML;
+  const parts = pageHtml.split(scriptText);
+
+  if (parts.length !== 2) {
+    alert('Błąd: nie można jednoznacznie podmienić skryptu. Spróbuj odświeżyć stronę.');
+    return;
+  }
+
+  const newHtml = parts[0] + newScriptText + parts[1];
+
+  // Trigger download
+  const blob = new Blob([newHtml], {type: 'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '3d-print-pricer.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  // Visual feedback
+  btn.textContent = '✓ Pobrano!';
+  btn.style.background = 'var(--accent)';
+  setTimeout(() => { btn.textContent = '⬇ Pobierz skonfigurowany kalkulator'; btn.style.background = ''; }, 2500);
+}
 
 // =========================================================
 loadConfig();
