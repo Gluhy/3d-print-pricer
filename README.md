@@ -4,6 +4,8 @@ A single-file, zero-dependency pricing calculator for 3D printing services. Buil
 
 **[Live Demo →](https://gluhy.github.io/3d-print-pricer/)**
 
+> You can configure the calculator directly in the live demo — tweak materials, rates, discounts, and currency — then use the **⬇ Download configured calculator** button in the Settings tab to save a standalone HTML file with your settings baked in. No server required, works fully offline.
+
 | Calculator | Material Comparison | Quote History |
 |---|---|---|
 | ![Calculator](screenshots/calculator.png) | ![Compare](screenshots/compare.png) | ![History](screenshots/history.png) |
