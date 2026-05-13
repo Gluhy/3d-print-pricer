@@ -247,55 +247,55 @@ select{cursor:pointer}select option{background:var(--card)}
 
   <!-- General -->
   <div class="card s-section">
-    <div class="card-title">Ogólne</div>
+    <div class="card-title">General</div>
     <div class="s-grid">
       <div>
-        <label>Waluta (symbol)</label>
-        <input id="cfg_currency" type="text" maxlength="4" placeholder="zł" oninput="applyGeneral()">
-        <label>Locale (formatowanie liczb)</label>
-        <input id="cfg_locale" type="text" placeholder="pl-PL" oninput="applyGeneral()">
+        <label>Currency (symbol)</label>
+        <input id="cfg_currency" type="text" maxlength="4" placeholder="€" oninput="applyGeneral()">
+        <label>Locale (number formatting)</label>
+        <input id="cfg_locale" type="text" placeholder="en-US" oninput="applyGeneral()">
         <label>VAT (%)</label>
         <input id="cfg_tax" type="number" min="0" max="100" placeholder="23" oninput="applyGeneral()">
       </div>
       <div>
-        <label>Minimalna wycena netto</label>
+        <label>Minimum quote (net)</label>
         <input id="cfg_min" type="number" min="0" placeholder="50" oninput="applyGeneral()">
-        <label>Stawka maszyny (za godzinę)</label>
+        <label>Machine rate (per hour)</label>
         <input id="cfg_machine" type="number" min="1" placeholder="25" oninput="applyGeneral()">
-        <label>Stawka projektowania (za godzinę)</label>
+        <label>Design rate (per hour)</label>
         <input id="cfg_design" type="number" min="1" placeholder="120" oninput="applyGeneral()">
-        <label>Dodatkowe ryzyko dual-material (%)</label>
+        <label>Dual-material extra risk (%)</label>
         <input id="cfg_dual_risk" type="number" min="0" max="50" placeholder="5" oninput="applyGeneral()">
       </div>
     </div>
-    <div class="s-hint">Locale przykłady: <strong>pl-PL</strong> (1 234,56 zł) · <strong>en-US</strong> (1,234.56 €) · <strong>de-DE</strong> (1.234,56 €)</div>
+    <div class="s-hint">Locale examples: <strong>pl-PL</strong> (1 234,56 zł) · <strong>en-US</strong> (1,234.56 €) · <strong>de-DE</strong> (1.234,56 €)</div>
   </div>
 
   <!-- Materials -->
   <div class="card s-section">
-    <div class="card-title">Materiały</div>
+    <div class="card-title">Materials</div>
     <div id="mat_table_container"></div>
   </div>
 
   <!-- Discounts -->
   <div class="card s-section">
-    <div class="card-title">Rabaty ilościowe</div>
+    <div class="card-title">Volume discounts</div>
     <div id="disc_table_container"></div>
-    <button class="btn btn-ghost" onclick="addDiscount()" style="margin-top:10px;font-size:10px;padding:6px 12px">+ Dodaj próg</button>
+    <button class="btn btn-ghost" onclick="addDiscount()" style="margin-top:10px;font-size:10px;padding:6px 12px">+ Add tier</button>
   </div>
 
   <!-- Scanning options -->
   <div class="card s-section">
-    <div class="card-title">Opcje skanowania / dodatkowych usług</div>
+    <div class="card-title">Scanning / extra services options</div>
     <div id="scan_table_container"></div>
-    <button class="btn btn-ghost" onclick="addScanOption()" style="margin-top:10px;font-size:10px;padding:6px 12px">+ Dodaj opcję</button>
+    <button class="btn btn-ghost" onclick="addScanOption()" style="margin-top:10px;font-size:10px;padding:6px 12px">+ Add option</button>
   </div>
 
   <!-- Download -->
   <div class="dl-box">
-    <p>Pobierz kalkulator z Twoją konfiguracją jako pojedynczy plik HTML.</p>
-    <small>Zastąp obecny plik nowym — ustawienia będą w nim zapisane na stałe. Działa offline, bez instalacji.</small>
-    <button class="btn btn-dl" onclick="downloadConfigured()">⬇ Pobierz skonfigurowany kalkulator</button>
+    <p>Download the calculator with your configuration as a single HTML file.</p>
+    <small>Replace the current file with the new one — settings will be saved permanently. Works offline, no installation needed.</small>
+    <button class="btn btn-dl" onclick="downloadConfigured()">⬇ Download configured calculator</button>
   </div>
 
 </div>
@@ -738,10 +738,10 @@ function renderMaterialsTable() {
     const label = GROUP_LABELS[group] || group;
     html += `<div class="s-group-hdr">
       <span>${label}</span>
-      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="addMaterial('${group}')">+ Dodaj</button>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="addMaterial('${group}')">+ Add</button>
     </div>
     <table class="s-tbl">
-      <thead><tr><th style="width:40%">Nazwa</th><th>Cena/kg</th><th>Mnożnik</th><th>Ryzyko %</th><th></th></tr></thead>
+      <thead><tr><th style="width:40%">Name</th><th>Price/kg</th><th>Multiplier</th><th>Risk %</th><th></th></tr></thead>
       <tbody>
       ${mats.map((m, i) => `<tr>
         <td><input type="text" value="${esc(m.name)}" style="width:100%" onchange="updateMat('${group}',${i},'name',this.value)"></td>
@@ -765,7 +765,7 @@ function updateMat(group, idx, field, value) {
 
 function addMaterial(group) {
   const key = 'custom_' + Date.now();
-  CFG.materials[group].push({key, name:'Nowy materiał', price:30, margin:2.0, risk:0.05});
+  CFG.materials[group].push({key, name:'New material', price:30, margin:2.0, risk:0.05});
   renderMaterialsTable();
   rebuildMats();
   buildDropdowns();
@@ -774,7 +774,7 @@ function addMaterial(group) {
 
 function removeMat(group, idx) {
   if (CFG.materials[group].length <= 1) {
-    alert('Musi pozostać co najmniej jeden materiał w grupie.');
+    alert('At least one material must remain in the group.');
     return;
   }
   CFG.materials[group].splice(idx, 1);
@@ -787,7 +787,7 @@ function removeMat(group, idx) {
 function renderDiscountsTable() {
   $('disc_table_container').innerHTML = `
     <table class="s-tbl">
-      <thead><tr><th>Min. szt.</th><th>Rabat %</th><th></th></tr></thead>
+      <thead><tr><th>Min. qty</th><th>Discount %</th><th></th></tr></thead>
       <tbody>
       ${CFG.discounts.map((d, i) => `<tr>
         <td><input type="number" value="${d.min}" min="1" style="width:80px" onchange="updateDiscount(${i},'min',+this.value)"></td>
@@ -818,7 +818,7 @@ function removeDiscount(idx) {
 function renderScanningTable() {
   $('scan_table_container').innerHTML = `
     <table class="s-tbl">
-      <thead><tr><th style="width:60%">Etykieta</th><th>Cena</th><th></th></tr></thead>
+      <thead><tr><th style="width:60%">Label</th><th>Price</th><th></th></tr></thead>
       <tbody>
       ${CFG.scanning_options.map((s, i) => `<tr>
         <td><input type="text" value="${esc(s.label)}" style="width:100%" onchange="updateScan(${i},'label',this.value)"></td>
@@ -835,7 +835,7 @@ function updateScan(idx, field, value) {
 }
 
 function addScanOption() {
-  CFG.scanning_options.push({label:'Nowa usługa', price:0});
+  CFG.scanning_options.push({label:'New service', price:0});
   renderScanningTable();
 }
 
@@ -860,7 +860,7 @@ function downloadConfigured() {
   const ei = scriptText.indexOf(endMarker) + endMarker.length;
 
   if (si === -1 || ei === endMarker.length - 1) {
-    alert('Błąd: nie znaleziono markerów konfiguracji w pliku. Upewnij się, że używasz oryginalnego pliku.');
+    alert('Error: configuration markers not found in the file. Make sure you are using the original file.');
     return;
   }
 
@@ -876,7 +876,7 @@ function downloadConfigured() {
   const parts = pageHtml.split(scriptText);
 
   if (parts.length !== 2) {
-    alert('Błąd: nie można jednoznacznie podmienić skryptu. Spróbuj odświeżyć stronę.');
+    alert('Error: could not uniquely replace the script. Try refreshing the page.');
     return;
   }
 
@@ -894,9 +894,9 @@ function downloadConfigured() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 
   // Visual feedback
-  btn.textContent = '✓ Pobrano!';
+  btn.textContent = '✓ Downloaded!';
   btn.style.background = 'var(--accent)';
-  setTimeout(() => { btn.textContent = '⬇ Pobierz skonfigurowany kalkulator'; btn.style.background = ''; }, 2500);
+  setTimeout(() => { btn.textContent = '⬇ Download configured calculator'; btn.style.background = ''; }, 2500);
 }
 
 // =========================================================
